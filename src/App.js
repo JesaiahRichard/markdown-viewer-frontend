@@ -8,7 +8,7 @@ function App() {
   const [newContent, setNewContent] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/markdown')
+    fetch('https://backend-markdown.onrender.com/')
       .then((response) => response.json())
       .then((data) => setMarkdownContent(data))
       .catch((error) => console.error('Error fetching data:', error));
