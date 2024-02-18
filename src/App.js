@@ -23,7 +23,7 @@ function App() {
 
 
 
-    fetch('http://localhost:3001/api/markdown', {
+    fetch('https://backend-markdown.onrender.com/api/markdown', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ function App() {
 
 
   const handleDelete = (id) => {
-    fetch(`http://localhost:3001/api/markdown/${id}`, {
+    fetch(`https://backend-markdown.onrender.com/api/markdown/${id}`, {
       method: 'DELETE',
     })
       .then(() => {
