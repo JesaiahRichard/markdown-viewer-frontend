@@ -11,7 +11,7 @@ function App() {
 
   useEffect(() => {
     if (loggedIn) {
-      fetch('https://backend-markdown.onrender.com/api/markdown')
+      fetch('https://markdown-viewer-backend-dehv.onrender.com/api/markdown')
         .then((response) => response.json())
         .then((data) => setMarkdownContent(data))
         .catch((error) => console.error('Error fetching data:', error));
@@ -24,20 +24,21 @@ function App() {
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
-   
-
 
     if (!loggedIn) {
       alert('Please log in to add content');
       return;
     }
 
-    fetch('https://backend-markdown.onrender.com/api/markdown', {
+
+    const sanitizedContent = newContent.trim();
+
+    fetch('https://markdown-viewer-backend-dehv.onrender.com/api/markdown', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ content: newContent }),
+      body: JSON.stringify({ content: sanitizedContent }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -47,8 +48,46 @@ function App() {
       .catch((error) => console.error('Error adding new content:', error));
   };
 
+
+  const handleEdit = (id, content) => {
+  
+    const editedContent = prompt('Enter the edited content:', content);
+  
+    
+    if (editedContent === null || editedContent.trim() === '') {
+      return;
+    }
+  
+
+    fetch(`https://markdown-viewer-backend-dehv.onrender.com/api/markdown/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content: editedContent }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to edit content');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const updatedContent = markdownContent.map(item =>
+          item._id === id ? { ...item, content: editedContent } : item
+        );
+        setMarkdownContent(updatedContent);
+        alert('Content edited successfully');
+      })
+      .catch((error) => {
+        console.error('Error editing content:', error);
+        alert('Failed to edit content');
+      });
+  };
+
+  
   const handleDelete = (id) => {
-    fetch(`https://backend-markdown.onrender.com/api/markdown/${id}`, {
+    fetch(`https://markdown-viewer-backend-dehv.onrender.com/api/markdown/${id}`, {
       method: 'DELETE',
     })
       .then(() => {
@@ -57,53 +96,10 @@ function App() {
       })
       .catch((error) => console.error('Error deleting content:', error));
   };
-  
-
-
-
-const handleEdit = (id, content) => {
-  
-  const editedContent = prompt('Enter the edited content:', content);
-
-
-  if (editedContent === null || editedContent.trim() === '') {
-    return;
-  }
-
-
-
-  fetch(`https://backend-markdown.onrender.com/api/markdown/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ content: editedContent }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Failed to edit content');
-      }
-      return response.json();
-    })
-    .then((data) => {
-   
-      
-      const updatedContent = markdownContent.map(item =>
-        item._id === id ? { ...item, content: editedContent } : item
-      );
-      setMarkdownContent(updatedContent);
-      alert('Content edited successfully');
-    })
-    .catch((error) => {
-      console.error('Error editing content:', error);
-      alert('Failed to edit content');
-    });
-};
-
-
 
   const handleLogin = () => {
-    fetch('https://backend-markdown.onrender.com/api/login', {
+    
+    fetch('https://markdown-viewer-backend-dehv.onrender.com/api/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,11 +117,9 @@ const handleEdit = (id, content) => {
       .catch((error) => console.error('Login error:', error));
   };
 
-
-
-
   const handleSignup = () => {
-    fetch('https://backend-markdown.onrender.com/api/signup', {
+    
+    fetch('https://markdown-viewer-backend-dehv.onrender.com/api/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -148,7 +142,7 @@ const handleEdit = (id, content) => {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <h1 className="text-center mb-4">Markdown Viewer</h1>
-          {/* Login Form */}
+      
           {!loggedIn && (
             <form>
               <div className="form-group">
@@ -159,6 +153,7 @@ const handleEdit = (id, content) => {
                   className="form-control"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  required
                 />
               </div>
               <div className="form-group">
@@ -169,6 +164,7 @@ const handleEdit = (id, content) => {
                   className="form-control"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </div>
               <button type="button" className="btn btn-primary mr-2" onClick={handleLogin}>
@@ -180,7 +176,7 @@ const handleEdit = (id, content) => {
             </form>
           )}
 
-          {/*Add Form */}
+          {/* Markdown Content and Add Form */}
           {loggedIn && (
             <div>
               <form onSubmit={handleFormSubmit}>
@@ -192,6 +188,7 @@ const handleEdit = (id, content) => {
                     value={newContent}
                     onChange={handleInputChange}
                     rows="4"
+                    required
                   />
                 </div>
                 <button type="submit" className="btn btn-primary">
@@ -208,13 +205,12 @@ const handleEdit = (id, content) => {
                     >
                       <i className="fas fa-trash"></i> Delete
                     </button>
-                    
-                          <button
-                            onClick={() => handleEdit(markdown._id, markdown.content)}
-                                  className="btn btn-primary mt-2 mr-2"
-                           >
-                                  <i className="fas fa-edit"></i> Edit
-                           </button>
+                    <button
+  onClick={() => handleEdit(markdown._id, markdown.content)}
+  className="btn btn-primary mt-2 mr-2"
+>
+  <i className="fas fa-edit"></i> Edit
+</button>
                   </div>
                 </div>
               ))}
